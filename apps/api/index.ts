@@ -1,13 +1,31 @@
 import express from "express";
+import { authMiddleware } from "./middleware";
+import { prisma } from "db/client";
 
 const app = express();
 
-app.post("/api/v1/websie", (req, res) => {});
+app.use(express.json());
 
-app.get("/api/v1/website/status", (req, res) => {});
+app.post("/api/v1/websie", authMiddleware, async (req, res) => {
+  const userId = req.userId!;
+  const { url } = req.body;
 
-app.get("/api/v1/websites", (req, res) => {});
+  const data = await prisma.website.create({
+    data: {
+      userId,
+      url,
+    },
+  });
 
-app.delete("/app/v1/website/", (req, res) => {});
+  res.json({
+    id: data.id,
+  });
+});
+
+app.get("/api/v1/website/status", authMiddleware, (req, res) => {});
+
+app.get("/api/v1/websites", authMiddleware, (req, res) => {});
+
+app.delete("/app/v1/website/", authMiddleware, (req, res) => {});
 
 app.listen(3000);
