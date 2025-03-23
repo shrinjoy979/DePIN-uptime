@@ -6,7 +6,7 @@ const app = express();
 
 app.use(express.json());
 
-app.post("/api/v1/websie", authMiddleware, async (req, res) => {
+app.post("/api/v1/website", authMiddleware, async (req, res) => {
   const userId = req.userId!;
   const { url } = req.body;
 
@@ -22,10 +22,52 @@ app.post("/api/v1/websie", authMiddleware, async (req, res) => {
   });
 });
 
-app.get("/api/v1/website/status", authMiddleware, (req, res) => {});
+app.get("/api/v1/website/status", authMiddleware, async (req, res) => {
+  const websiteId = req.query.websiteId! as unknown as string;
+  const userId = req.userId;
 
-app.get("/api/v1/websites", authMiddleware, (req, res) => {});
+  const data = await prisma.website.findFirst({
+    where: {
+      id: websiteId,
+      userId,
+      disabled: false,
+    },
+    include: {
+      ticks: true,
+    },
+  });
 
-app.delete("/app/v1/website/", authMiddleware, (req, res) => {});
+  res.json(data);
+});
+
+app.get("/api/v1/websites", authMiddleware, async (req, res) => {
+  const userId = req.userId!;
+
+  const websites = await prisma.website.findMany({
+    where: {
+      userId,
+      disabled: false,
+    },
+  });
+
+  res.json({ websites });
+});
+
+app.delete("/app/v1/website/", authMiddleware, async (req, res) => {
+  const websiteId = req.body.websiteId;
+  const userId = req.userId!;
+
+  await prisma.website.update({
+    where: {
+      id: websiteId,
+      userId,
+    },
+    data: {
+      disabled: true,
+    },
+  });
+
+  res.json({ message: "Deleted successfully" });
+});
 
 app.listen(3000);
