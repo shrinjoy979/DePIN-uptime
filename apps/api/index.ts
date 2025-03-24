@@ -1,9 +1,11 @@
 import express from "express";
 import { authMiddleware } from "./middleware";
 import { prisma } from "db/client";
+import cors from "cors";
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
 app.post("/api/v1/website", authMiddleware, async (req, res) => {
@@ -48,6 +50,9 @@ app.get("/api/v1/websites", authMiddleware, async (req, res) => {
       userId,
       disabled: false,
     },
+    include: {
+      ticks: true,
+    },
   });
 
   res.json({ websites });
@@ -70,4 +75,4 @@ app.delete("/app/v1/website/", authMiddleware, async (req, res) => {
   res.json({ message: "Deleted successfully" });
 });
 
-app.listen(3000);
+app.listen(8080);
